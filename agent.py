@@ -2,6 +2,14 @@ import json
 from openai import OpenAI
 import time
 import sys
+import os
+
+# Try to load environment variables from a local .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 def typewriter(text, delay=0.02):
     for char in text:
@@ -10,9 +18,11 @@ def typewriter(text, delay=0.02):
     print()  # new line at end
 
 
+api_key = os.environ.get("OPENROUTER_API_KEY") or "YOUR_API_KEY_HERE"
+
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key="#####" # Paste api ki in here 
+    api_key=api_key
 )
 
 print("Quranic Guidance AI Agent (WITH MEMORY)")
