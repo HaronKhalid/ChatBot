@@ -150,9 +150,3 @@ The AI's personality and scope are defined by `SYSTEM_PROMPT` in `app.py`. Edit 
 - Memory is **session-only** — it resets when you restart the Flask server or click "New Chat"
 - Each browser tab gets its own independent session
 - The app runs locally on your machine; nothing is stored or sent anywhere except to OpenRouter
-
----
-
-## Author
-
-Haroon Khalid

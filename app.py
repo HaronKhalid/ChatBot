@@ -1,17 +1,31 @@
 import json
 import time
+import os
 from flask import Flask, request, jsonify, render_template_string
 from openai import OpenAI
 
+# Try to load environment variables from a local .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 app = Flask(__name__)
 
-# 🔑 OpenRouter client — replace with your actual key
+# 🔑 OpenRouter client — fallback to environment variables
+api_key = os.environ.get("OPENROUTER_API_KEY") or "YOUR_API_KEY_HERE"
+MODEL = os.environ.get("OPENROUTER_MODEL") or "meta-llama/llama-3-8b-instruct"
+
+if not api_key or api_key.startswith("###") or api_key == "YOUR_API_KEY_HERE":
+    print("\n⚠️  WARNING: OpenRouter API key is not configured.")
+    print("   Please set the OPENROUTER_API_KEY environment variable or edit app.py to configure it.")
+    print("   Otherwise, the chatbot API calls will fail.\n")
+
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key="###"   # ← paste your key here
+    api_key=api_key
 )
-
-MODEL = "meta-llama/llama-3-8b-instruct"
 
 SYSTEM_PROMPT = """You are an expert Islamic teacher and guide who loves teaching and explaining Islamic knowledge in depth. 
 You break down complex concepts from the Quran, Sunnah, Fiqh, Aqeedah, Seerah, and Akhlaq into simple, step-by-step explanations. 
@@ -82,6 +96,7 @@ HTML_PAGE = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -337,6 +352,42 @@ HTML_PAGE = """<!DOCTYPE html>
     margin-top: 8px;
     letter-spacing: 0.03em;
   }
+
+  /* Markdown rendering styles */
+  .bubble h1, .bubble h2, .bubble h3 {
+    color: var(--gold);
+    margin: 12px 0 6px 0;
+    font-family: var(--font-ar);
+  }
+  .bubble h1 { font-size: 1.3rem; }
+  .bubble h2 { font-size: 1.15rem; }
+  .bubble h3 { font-size: 1.05rem; }
+  .bubble p { margin-bottom: 8px; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .bubble ul, .bubble ol { margin: 8px 0 8px 20px; }
+  .bubble li { margin-bottom: 4px; }
+  .bubble code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+  .bubble pre {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 10px 0;
+  }
+  .bubble pre code { background: none; padding: 0; }
+  .bubble blockquote {
+    border-left: 3px solid var(--gold);
+    padding-left: 12px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-style: italic;
+  }
 </style>
 </head>
 <body>
@@ -422,7 +473,11 @@ HTML_PAGE = """<!DOCTYPE html>
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    bubble.textContent = text;
+    if (role === 'ai') {
+      bubble.innerHTML = marked.parse(text);
+    } else {
+      bubble.textContent = text;
+    }
 
     div.appendChild(avatar);
     div.appendChild(bubble);
@@ -512,10 +567,12 @@ HTML_PAGE = """<!DOCTYPE html>
     box.appendChild(div);
 
     let i = 0;
+    let currentText = "";
     const speed = 12;
     function type() {
       if (i < text.length) {
-        bubble.textContent += text[i++];
+        currentText += text[i++];
+        bubble.innerHTML = marked.parse(currentText);
         scrollBottom();
         setTimeout(type, speed);
       }
