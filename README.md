@@ -4,15 +4,26 @@ A conversational Islamic knowledge assistant with a clean dark-themed web UI, po
 
 ---
 
+## Screenshots
+
+### Welcome Landing Page
+![Welcome Page](screenshots/welcome.png)
+
+### Conversation Interface with Markdown Rendering
+![Conversation Screen](screenshots/chat_demo.png)
+
+---
+
 ## Features
 
 - Beautiful dark web UI with gold Islamic aesthetic
+- Markdown rendering (bolding, headers, lists, quotes, Quranic verses) for rich AI responses
 - Typewriter effect on AI responses
 - Full conversation memory (context carries across the whole chat)
 - "New Chat" button to reset the session
 - Quick-start suggestion buttons
-- API key stays server-side, never exposed to the browser
-- Single-file app — everything in one `app.py`
+- API key config falls back to environment variables
+- Core web application contained in `app.py`
 
 ---
 
@@ -40,13 +51,24 @@ pip install flask openai
 
 **3. Add your API key**
 
-Open `app.py` and find this line near the top:
+You can configure the API key in two ways:
 
-```python
-api_key="YOUR_API_KEY_HERE"
-```
+- **Environment Variable (Recommended)**:
+  Set the `OPENROUTER_API_KEY` environment variable in your shell:
+  ```bash
+  # Linux/macOS
+  export OPENROUTER_API_KEY="your_api_key_here"
 
-Replace `YOUR_API_KEY_HERE` with your actual OpenRouter API key. You can get one free at [openrouter.ai/keys](https://openrouter.ai/keys).
+  # Windows PowerShell
+  $env:OPENROUTER_API_KEY="your_api_key_here"
+  ```
+
+- **Edit app.py Directly**:
+  Open `app.py` and find this line near the top:
+  ```python
+  api_key = os.environ.get("OPENROUTER_API_KEY") or "YOUR_API_KEY_HERE"
+  ```
+  Replace `YOUR_API_KEY_HERE` with your actual OpenRouter API key. You can get one at [openrouter.ai/keys](https://openrouter.ai/keys).
 
 **4. Run the app**
 
@@ -67,13 +89,18 @@ http://127.0.0.1:5000
 ```
 quran-guidance-ai/
 │
-├── app.py   # Flask backend + embedded HTML frontend (everything is here)
-├── agent.py # Without frontend
-├── LICENSE  # MIT License      
+├── screenshots/
+│   ├── welcome.png       # Screenshot of the landing/welcome screen
+│   └── chat_demo.png     # Screenshot of the chat session displaying formatted Markdown
+│
+├── app.py                # Flask backend + embedded HTML frontend (main application)
+├── agent.py              # Command-line version of the assistant
+├── take_screenshots.py   # Utility script to automate screenshot capture using Playwright
+├── LICENSE               # MIT License      
 └── README.md
 ```
 
-No templates folder, no static folder — the entire UI lives inside `app.py` as an embedded HTML string.
+No templates or static folder needed — the entire web UI is embedded directly inside `app.py` as a string template.
 
 ---
 
@@ -124,3 +151,8 @@ The AI's personality and scope are defined by `SYSTEM_PROMPT` in `app.py`. Edit 
 - Each browser tab gets its own independent session
 - The app runs locally on your machine; nothing is stored or sent anywhere except to OpenRouter
 
+---
+
+## Author
+
+Haroon Khalid
